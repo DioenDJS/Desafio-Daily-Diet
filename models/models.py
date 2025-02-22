@@ -12,8 +12,8 @@ user_snack = db.Table(
 
 class User(db.Model, UserMixin):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(80), nullable=True)
+    username = db.Column(db.String(180), unique=True, nullable=False)
+    password = db.Column(db.String(180), nullable=True)
     role = db.Column(db.String(80), nullable=True, default='user')
     snacks = db.relationship("Snack", secondary=user_snack, back_populates="users")
 
