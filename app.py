@@ -90,6 +90,30 @@ def get_all_snacks():
         } for snack in snacks]
     })
 
+@app.route("/snack/<name>", methods=['GET'])
+@login_required
+def get_snack(name: str):
+
+    user_id = current_user.id
+
+    print("testando ")
+    print(user_id)
+    print(name)
+    snack = DataBase.select_snack(user_id, name)
+
+    if not snack:
+        return jsonify({"message": "Refeição não encontrada!"}), 404
+
+    return jsonify({
+        "Refeição": {
+            "id": snack.id,
+            "nome": snack.name,
+            "descrição": snack.description,
+            "data": snack.date,
+            "Dentro da dieta": "dentro" if snack.in_diet else "fora"
+        }
+    })
+
 
 if __name__ == "__main__":
     app.run(debug=True)
