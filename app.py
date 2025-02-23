@@ -37,5 +37,21 @@ def login():
 def logout():
     logout_user()
     return jsonify({"message": "Usuario deslogado com sucesso!"})
+
+@app.route("/user", methods=["POST"])
+def create_user():
+    data = request.json
+    user_name = data.get("username")
+    password = data.get("password")
+
+    if user_name and password:
+        hashed_bytes = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        hashed_password = hashed_bytes.decode('utf-8')
+        user = User(username=user_name, password=hashed_password, role="user")
+        db.session.add(user)
+        db.session.commit()
+        return jsonify({"message": "Usuario cadastrado com sucesso"})
+
+    return jsonify({"message": "Dados invalidos"}), 400
 if __name__ == "__main__":
     app.run(debug=True)
