@@ -30,10 +30,7 @@ def login():
 
     if user_name and password:
         user = User.query.filter_by(username=user_name).first()
-        # print(str.encode(user.password))
-        # print(str.encode(password))
-
-        # if user and bcrypt.checkpw(str.encode(password), str.encode(user.password)):
+    
         if user and bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
             login_user(user)
             return jsonify({'message': 'Autenticação realizada com sucesso! '}), 200
