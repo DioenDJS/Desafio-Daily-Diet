@@ -53,5 +53,41 @@ def create_user():
         return jsonify({"message": "Usuario cadastrado com sucesso"})
 
     return jsonify({"message": "Dados invalidos"}), 400
+
+@app.route("/snack", methods=["POST"])
+@login_required
+def create_snack():
+    data = request.json
+    name = data.get("name")
+    description = data.get("description")
+    date = datetime.now()
+    in_diet = data.get("in_diet")
+
+    snack = Snack(name=name, description=description, date=date, in_diet=in_diet)
+    snack.users.append(current_user)
+    db.session.add(snack)
+    db.session.commit()
+    return jsonify({"message": "Refeição criada com sucesso"})
+
+@app.route("/snacks", methods=['GET'])
+@login_required
+def get_all_snacks():
+    user_id = current_user.id
+
+    user = User.query.options(joinedload(User.snacks)).filter_by(id=user_id).first()
+
+    if user is None:
+        return jsonify({"error": "User not found"}), 404  
+
+    return jsonify({
+        "snacks": [{
+            "name": snack.name,
+            "descrição": snack.description,
+            "data": snack.date,
+            "Dentro da dieta": "dentro" if snack.in_diet else "fora"
+        } for snack in user.snacks]
+    })
+
+
 if __name__ == "__main__":
     app.run(debug=True)
