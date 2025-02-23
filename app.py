@@ -1,7 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_login import login_user, LoginManager, current_user, login_required, logout_user
+from sqlalchemy.orm import joinedload
+
 from models.models import User, Snack, user_snack
 from database import db
+import bcrypt
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -26,7 +30,10 @@ def login():
 
     if user_name and password:
         user = User.query.filter_by(username=user_name).first()
-    
+        # print(str.encode(user.password))
+        # print(str.encode(password))
+
+        # if user and bcrypt.checkpw(str.encode(password), str.encode(user.password)):
         if user and bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
             login_user(user)
             return jsonify({'message': 'Autenticação realizada com sucesso! '}), 200
