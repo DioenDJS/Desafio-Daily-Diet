@@ -4,6 +4,7 @@ from sqlalchemy.orm import joinedload
 
 from models.models import User, Snack, user_snack
 from database import db
+from data import DataBase
 import bcrypt
 from datetime import datetime
 
@@ -78,10 +79,7 @@ def create_snack():
 def get_all_snacks():
     user_id = current_user.id
 
-    user = User.query.options(joinedload(User.snacks)).filter_by(id=user_id).first()
-
-    if user is None:
-        return jsonify({"error": "User not found"}), 404  
+    snacks = DataBase.select_all_snacks(user_id)
 
     return jsonify({
         "snacks": [{
@@ -89,7 +87,7 @@ def get_all_snacks():
             "descrição": snack.description,
             "data": snack.date,
             "Dentro da dieta": "dentro" if snack.in_diet else "fora"
-        } for snack in user.snacks]
+        } for snack in snacks]
     })
 
 
