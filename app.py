@@ -59,6 +59,20 @@ def create_user():
 
     return jsonify({"message": "Dados invalidos"}), 400
 
+@app.route("/me", methods=['GET'])
+@login_required
+def get_me():
+    user_id = current_user.id
+
+    user = User.query.get(id=user_id)
+
+    return jsonify({
+        "user": {
+            "id": user.id,
+            "name": user.name
+        }
+    })
+
 @app.route("/snack", methods=["POST"])
 @login_required
 def create_snack():
@@ -84,22 +98,20 @@ def get_all_snacks():
     return jsonify({
         "snacks": [{
             "name": snack.name,
+            "id": snack.id,
             "descrição": snack.description,
             "data": snack.date,
             "Dentro da dieta": "dentro" if snack.in_diet else "fora"
         } for snack in snacks]
     })
 
-@app.route("/snack/<name>", methods=['GET'])
+@app.route("/snack/name/<name>", methods=['GET'])
 @login_required
-def get_snack(name: str):
+def get_snack_for_name(name: str):
 
     user_id = current_user.id
 
-    print("testando ")
-    print(user_id)
-    print(name)
-    snack = DataBase.select_snack(user_id, name)
+    snack = DataBase.select_snack_for_name(user_id, name)
 
     if not snack:
         return jsonify({"message": "Refeição não encontrada!"}), 404
@@ -113,6 +125,97 @@ def get_snack(name: str):
             "Dentro da dieta": "dentro" if snack.in_diet else "fora"
         }
     })
+
+@app.route("/snack/id/<snack_id>", methods=['GET'])
+@login_required
+def get_snack_for_id(snack_id):
+
+    user_id = current_user.id
+
+    print(snack_id)
+    snack = DataBase.select_snack_for_id(user_id, snack_id)
+
+    if not snack:
+        return jsonify({"message": "Refeição não encontrada!"}), 404
+
+    return jsonify({
+        "Refeição": {
+            "id": snack.id,
+            "nome": snack.name,
+            "descrição": snack.description,
+            "data": snack.date,
+            "Dentro da dieta": "dentro" if snack.in_diet else "fora"
+        }
+    })
+
+@app.route("/search/snack/<name>", methods=['GET'])
+@login_required
+def search_snack_for_name(name: str):
+
+    user_id = current_user.id
+
+    snacks = DataBase.search_snack_for_name(user_id, name)
+
+    if not snacks:
+        return jsonify({"message": "Refeição não encontrada!"}), 404
+
+    return jsonify({
+        "snacks": [{
+            "name": snack.name,
+            "id": snack.id,
+            "descrição": snack.description,
+            "data": snack.date,
+            "Dentro da dieta": "dentro" if snack.in_diet else "fora"
+        } for snack in snacks]
+    })
+
+@app.route("/snack/<snack_id>", methods=['DELETE'])
+@login_required
+def deleted_snack(snack_id):
+
+    user_id = current_user.id
+
+    snack = DataBase.select_snack_for_id(user_id, snack_id)
+
+    if not snack:
+        return jsonify({"message": "Refeição não encontrada!"}), 404
+
+    result = DataBase.deleted(snack)
+
+    if not result:
+        return jsonify({"message": f"Falha ao tentar deletar a Refeição {snack_id} "})
+
+    return jsonify({"message": f"Refeição {snack_id} deletado com sucesso!"}), 200
+
+@app.route("/snack/<snack_id>", methods=['PUT'])
+@login_required
+def update_snack(snack_id):
+    user_id = current_user.id
+
+    data = request.json
+    data_keys = list(data.keys())
+    snack = DataBase.select_snack_for_id(user_id, snack_id)
+
+    if not snack:
+        return jsonify({"message": f"Refeição {snack_id} não encontrada!"})
+
+    for field_snack in data_keys:
+        setattr(snack, field_snack, data.get(field_snack))
+    db.session.commit()
+    return jsonify({"message": f"Refeição {snack_id} não encontrada!"}), 200
+
+
+
+@app.route("/snack/controle_calorias/<date_start>/<date_end>", methods=['GET'])
+@login_required
+def controal_cal(date_start, date_end):
+    user_id = current_user.id
+
+    snacks = DataBase.select_snack_data(user_id, start_date=date_start, end_date=date_end)
+
+    list_ingredients = [snacks.description for snack in snacks]
+
+
 
 
 if __name__ == "__main__":
